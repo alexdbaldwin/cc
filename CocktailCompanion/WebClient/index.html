@@ -1,0 +1,99 @@
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+	<script>
+	
+	
+	function getIngredients(){
+		$.ajax({
+				method: "GET",
+				contentType: "application/json",
+				url: "http://localhost:8080/ingredients",
+				success: function(data){
+					$('#selectIngredient').children().remove();
+					for(var i = 0; i < data.length; i++){
+						$('#selectIngredient').append($('<option>', {value:data[i].id, text:data[i].name}));
+					}
+					
+					console.log(data);
+				}
+			});
+	}
+	
+	function getCocktails(){
+		$.ajax({
+				method: "GET",
+				contentType: "application/json",
+				url: "http://localhost:8080/cocktails",
+				success: function(data){
+					$('#selectCocktail').children().remove();
+					for(var i = 0; i < data.length; i++){
+						$('#selectCocktail').append($('<option>', {value:data[i].id, text:data[i].name}));
+					}
+					
+					console.log(data);
+				}
+			});
+	}
+	
+	$(document).ready(function(){
+		$("#addCocktail").click(function(){
+			$.ajax({
+				method: "POST",
+				contentType: "application/json",
+				url: "http://localhost:8080/cocktails",
+				data: "{name: \"" + $("#txtCocktailName").val() + "\",method: \"" + $("#txtCocktailMethod").val() + "\"}",
+				success: function(result){
+					console.log("Cocktail added.");
+					getCocktails();
+				}
+			});
+		});
+		
+		$("#addIngredient").click(function(){
+			$.ajax({
+				method: "POST",
+				contentType: "application/json",
+				url: "http://localhost:8080/ingredients",
+				data: "{name: \"" + $("#txtIngredientName").val() + "\"}",
+				success: function(result){
+					console.log("Ingredient added.");
+					getIngredients();
+				}
+			});
+		});
+		
+		
+		getIngredients();
+		getCocktails();
+	});
+	
+	</script>
+	<style>
+	
+	
+	
+	</style>
+</head>
+<body>
+<div>
+Add cocktail, 
+Name: <input type="text" id="txtCocktailName"/>
+Method: <input type="text" id="txtCocktailMethod"/>
+<input type="button" value="Add Cocktail" id="addCocktail"/>
+</div>
+<div>
+Add ingredient, 
+Name: <input type="text" id="txtIngredientName"/>
+<input type="button" value="Add Ingredient" id="addIngredient"/>
+</div>
+<div>
+Ingredients <select id="selectIngredient">
+</select>
+</div>
+<div>
+Cocktails<select id="selectCocktail">
+</select>
+</div>
+</body>
+</html>
