@@ -1,6 +1,17 @@
 <html>
 <head>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+	
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+	
 	<script>
 	
 	
@@ -63,6 +74,20 @@
 			});
 		});
 		
+		$("#navIngredients").click(function(){
+			$("#navCocktails").parent().removeClass("active");
+			$(this).parent().addClass("active");
+			$("#list_cocktails").addClass("hidden");
+			$("#list_ingredients").removeClass("hidden");
+		});
+		
+		$("#navCocktails").click(function(){
+			$("#navIngredients").parent().removeClass("active");
+			$(this).parent().addClass("active");
+			$("#list_cocktails").removeClass("hidden").parent().addClass("active");
+			$("#list_ingredients").addClass("hidden").parent().removeClass("active");
+		});
+		
 		
 		getIngredients();
 		getCocktails();
@@ -70,30 +95,68 @@
 	
 	</script>
 	<style>
-	
-	
-	
+		body { padding-top: 50px; }
 	</style>
 </head>
 <body>
-<div>
-Add cocktail, 
-Name: <input type="text" id="txtCocktailName"/>
-Method: <input type="text" id="txtCocktailMethod"/>
-<input type="button" value="Add Cocktail" id="addCocktail"/>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="#">Cocktail Companion</a>	
+		</div>
+		<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+			<ul class="nav navbar-nav">
+				<li class="active"><a href="#" id="navCocktails">Cocktails<span class="sr-only">(current)</span></a></li>
+				<li><a href="#" id="navIngredients">Ingredients</a></li>
+			</ul>
+		</div>
+	</div>
+</nav>
+<div class="hidden">
+
+	<div>
+	Ingredients <select id="selectIngredient">
+	</select>
+	</div>
+	<div>
+	Cocktails<select id="selectCocktail">
+	</select>
+	</div>
 </div>
-<div>
-Add ingredient, 
-Name: <input type="text" id="txtIngredientName"/>
-<input type="button" value="Add Ingredient" id="addIngredient"/>
+<div id="list_cocktails">
+	<ul id="cocktails" class="list-group">
+		<button type="button" class="list-group-item">Manhattan</button>
+		<button type="button" class="list-group-item">Whiskey Sour</button>
+		<button type="button" class="list-group-item">Martini</button>
+		<button type="button" class="list-group-item">Negroni</button>
+		<button type="button" class="list-group-item">Margarita</button>
+	</ul>
 </div>
-<div>
-Ingredients <select id="selectIngredient">
-</select>
+<div id="list_ingredients" class="hidden">
+	<ul id="ingredients" class="list-group">
+		<button type="button" class="list-group-item">Bulleit Bourbon</button>
+		<button type="button" class="list-group-item">Bulleit Rye</button>
+		<button type="button" class="list-group-item">Woodford Reserve Bourbon</button>
+		<button type="button" class="list-group-item">Beefeater Gin</button>
+		<button type="button" class="list-group-item">Martini Red Vermouth</button>
+	</ul>
 </div>
-<div>
-Cocktails<select id="selectCocktail">
-</select>
+<div id="add_edit_cocktail" class="hidden">
+	Add ingredient, 
+	Name: <input type="text" id="txtIngredientName"/>
+	<input type="button" value="Add Ingredient" id="addIngredient"/>
+</div>
+<div id="add_edit_ingredient" class="hidden">
+	Add cocktail, 
+	Name: <input type="text" id="txtCocktailName"/>
+	Method: <input type="text" id="txtCocktailMethod"/>
+	<input type="button" value="Add Cocktail" id="addCocktail"/>
 </div>
 </body>
 </html>
