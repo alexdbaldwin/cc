@@ -14,19 +14,83 @@
 	
 	<script>
 	
+	var newCocktail = null;
+	var currentIngredient = null;
+	var allIngredients = [];
+	var allCocktails = [];
+	
+	function Cocktail (name, method, id) {
+		if( id === undefined)
+			this.id = null;
+		else
+			this.id = id;
+		this.name = name;
+		this.method = method;
+		this.ingredients = [];
+	}
+	
+	function Ingredient (name, id) {
+		if( id === undefined)
+			this.id = null;
+		else
+			this.id = id;
+		this.name = name;
+		this.unit = "ml";
+		this.pantryAmount = 0;
+		this.amount = 0;
+	}
+	
+	function deleteIngredient(ingredient){
+		$.ajax({
+				method: "DELETE",
+				url: "http://localhost:8081/ingredients/" + ingredient.id,
+				success: function(data){
+					getIngredients();
+				}
+			});
+	}
+	
+	function editIngredient(ingredient){
+		$.ajax({
+				method: "PUT",
+				url: "http://localhost:8081/ingredients",
+				contentType: "application/json",
+				data: JSON.stringify(ingredient),
+				success: function(data){
+					getIngredients();
+				}
+			});
+	}
+	
+	function editCocktail(cocktail){
+		$.ajax({
+				method: "PUT",
+				url: "http://localhost:8081/cocktails",
+				contentType: "application/json",
+				data: JSON.stringify(cocktail),
+				success: function(data){
+					getCocktails	();
+				}
+			});
+	}
+	
+	function deleteCocktail(cocktail){
+		$.ajax({
+				method: "DELETE",
+				url: "http://localhost:8081/cocktails/" + cocktail.id,
+				success: function(data){
+					getCocktails();
+				}
+			});
+	}
 	
 	function getIngredients(){
 		$.ajax({
 				method: "GET",
 				contentType: "application/json",
-				url: "http://localhost:8080/ingredients",
+				url: "http://localhost:8081/ingredients",
 				success: function(data){
-					$('#selectIngredient').children().remove();
-					for(var i = 0; i < data.length; i++){
-						$('#selectIngredient').append($('<option>', {value:data[i].id, text:data[i].name}));
-					}
-					
-					console.log(data);
+					updateIngredientsList(data);
 				}
 			});
 	}
@@ -35,63 +99,192 @@
 		$.ajax({
 				method: "GET",
 				contentType: "application/json",
-				url: "http://localhost:8080/cocktails",
+				url: "http://localhost:8081/cocktails",
 				success: function(data){
-					$('#selectCocktail').children().remove();
-					for(var i = 0; i < data.length; i++){
-						$('#selectCocktail').append($('<option>', {value:data[i].id, text:data[i].name}));
-					}
-					
-					console.log(data);
+					updateCocktailsList(data);
 				}
 			});
 	}
 	
-	$(document).ready(function(){
-		$("#addCocktail").click(function(){
-			$.ajax({
+	function updateIngredientsList(ingredients){
+		allIngredients = ingredients;
+		$('#ingredients').children().remove();
+		for(let i = 0; i < ingredients.length; i++){
+			$('#ingredients').append("<li class='list-group-item' id='" + ingredients[i].id + "'><a href='#'>" + ingredients[i].name + " " + ingredients[i].unit + "</a><span class='badge remove-ingredient-badge'><span class='glyphicon glyphicon-remove'></span></span></li>");
+			$('#ingredients li:last-child').find('.remove-ingredient-badge').click(function(){
+				deleteIngredient(ingredients[i]);
+			});
+			$('#ingredients li:last-child').find('a').click(function(){
+				$("#list_ingredients").addClass("hidden");
+				$("#add_edit_ingredient").removeClass("hidden");
+				$("#addIngredient").addClass("hidden");
+				$("#editIngredient").removeClass("hidden");
+				currentIngredient = ingredients[i];
+				$("#txtIngredientName").val(currentIngredient.name);
+				$("#txtIngredientPantryAmount").val(currentIngredient.pantryAmount);
+				$("#selectedUnit").text(currentIngredient.unit);
+			});
+		}
+		
+		
+	}
+	
+	function updateCocktailsList(cocktails){
+	allCocktails = cocktails;
+		$('#cocktails').children().remove();
+		for(let i = 0; i < cocktails.length; i++){
+			$('#cocktails').append("<li class='list-group-item' id='" + cocktails[i].id + "'><a href='#'>" + cocktails[i].name + " " + cocktails[i].unit + "</a><span class='badge remove-cocktail-badge'><span class='glyphicon glyphicon-remove'></span></span></li>");
+			$('#cocktails li:last-child').find('.remove-cocktail-badge').click(function(){
+				deleteCocktail(cocktails[i]);
+			});
+		}
+	}
+	
+	function addCocktail(cocktail){
+		$.ajax({
 				method: "POST",
 				contentType: "application/json",
-				url: "http://localhost:8080/cocktails",
-				data: "{name: \"" + $("#txtCocktailName").val() + "\",method: \"" + $("#txtCocktailMethod").val() + "\"}",
+				url: "http://localhost:8081/cocktails",
+				data: JSON.stringify(cocktail),
 				success: function(result){
 					console.log("Cocktail added.");
 					getCocktails();
 				}
 			});
-		});
-		
-		$("#addIngredient").click(function(){
-			$.ajax({
+	}
+	
+	function addIngredient(ingredient){
+		$.ajax({
 				method: "POST",
 				contentType: "application/json",
-				url: "http://localhost:8080/ingredients",
-				data: "{name: \"" + $("#txtIngredientName").val() + "\"}",
+				url: "http://localhost:8081/ingredients",
+				data: JSON.stringify(ingredient),
 				success: function(result){
 					console.log("Ingredient added.");
 					getIngredients();
 				}
 			});
+	}
+	
+	function clearAddIngredient(){
+		$("#txtIngredientName").val("");
+		$("#selectedUnit").text("ml");
+		
+		
+	}
+	
+	function clearAddCocktail(){
+		$("#txtCocktailName").val("");
+		$("#txtCocktailMethod").val("");
+		$("#selectedUnit").text("ml");
+		$("#cocktailIngredients").children().remove();
+	}
+
+	
+	$(document).ready(function(){
+		$("#addCocktail").click(function(){
+			addCocktail(newCocktail);
+		});
+		
+		$("#addIngredient").click(function(){
+			var i = new Ingredient($("#txtIngredientName").val());
+			i.unit = $("#selectedUnit").text();
+			i.pantryAmount = parseFloat($("#txtIngredientPantryAmount").val());
+			addIngredient(i);
+			$("#navIngredients").click();
+		});
+		
+		$("#editIngredient").click(function(){
+			currentIngredient.name = $("#txtIngredientName").val();
+			currentIngredient.unit = $("#selectedUnit").text();
+			currentIngredient.pantryAmount = parseFloat($("#txtIngredientPantryAmount").val());
+			editIngredient(currentIngredient);
+			$("#navIngredients").click();
 		});
 		
 		$("#navIngredients").click(function(){
 			$("#navCocktails").parent().removeClass("active");
 			$(this).parent().addClass("active");
 			$("#list_cocktails").addClass("hidden");
+			$("#add_edit_cocktail").addClass("hidden");
+			$("#add_edit_ingredient").addClass("hidden");
 			$("#list_ingredients").removeClass("hidden");
 		});
 		
 		$("#navCocktails").click(function(){
 			$("#navIngredients").parent().removeClass("active");
 			$(this).parent().addClass("active");
-			$("#list_cocktails").removeClass("hidden").parent().addClass("active");
-			$("#list_ingredients").addClass("hidden").parent().removeClass("active");
+			$("#list_cocktails").removeClass("hidden");
+			$("#list_ingredients").addClass("hidden");
+			$("#add_edit_cocktail").addClass("hidden");
+			$("#add_edit_ingredient").addClass("hidden");
 		});
+		
+		$("#navAddCocktail").click(function(){
+			$("#list_cocktails").addClass("hidden");
+			$("#add_edit_cocktail").removeClass("hidden");
+			newCocktail = new Cocktail("","");
+			clearAddCocktail();
+		});
+		
+		$("#navAddIngredient").click(function(){
+			$("#list_ingredients").addClass("hidden");
+			$("#add_edit_ingredient").removeClass("hidden");
+			$("#addIngredient").removeClass("hidden");
+			$("#editIngredient").addClass("hidden");
+			currentIngredient = new Ingredient("");
+			clearAddIngredient();
+		});
+		
 		
 		
 		getIngredients();
 		getCocktails();
-	});
+		
+		$("#txtCocktailName").change(function(){
+			newCocktail.name = $(this).val();
+		});
+		
+		$("#txtCocktailMethod").change(function(){
+			newCocktail.method = $(this).val();
+			console.log(newCocktail);
+		});
+		
+		$(".select-dropdown li a").click(function(){
+			$(this).parents(".input-group-btn").find('.selection').text($(this).text());
+			$(this).parents(".input-group-btn").find('.selection').val($(this).text());
+		});
+		
+		$("#addCocktailIngredient").click(function(){
+			$("#cocktailIngredients").append($('<div class=" input-group"><div class="input-group-btn"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="selection">Select Ingredient</span> <span class="caret"></span></button><ul class="dropdown-menu select-dropdown ingredient-select"></ul></div><input type="text" class="form-control ingredient-amount" aria-label="..."><span class="input-group-addon ingredient-unit">ml</span></div>'));
+			var newItem = $("#cocktailIngredients div:last-child");
+			var ing = new Ingredient("");
+			newCocktail.ingredients.push(ing);
+			
+			newItem.find(".ingredient-select").children().remove();
+			for(let i = 0; i < allIngredients.length; i++){
+				newItem.find(".ingredient-select").append("<li ><a href='#'>" + allIngredients[i].name + "</a></li>");
+				newItem.find(".ingredient-select li:last-child")		
+					.click(function(){
+						$(this).parent().parent().parent().find(".ingredient-unit").text(allIngredients[i].unit);
+						ing.id = allIngredients[i].id;
+						ing.name = allIngredients[i].name;
+						ing.unit = allIngredients[i].unit;
+					});	
+
+				
+			}
+			newItem.find(".ingredient-amount").change(function(){
+					ing.amount = $(this).val();	
+			});
+		
+			$(".select-dropdown li a").click(function(){
+				$(this).parents(".input-group-btn").find('.selection').text($(this).text());
+				$(this).parents(".input-group-btn").find('.selection').val($(this).text());
+			});
+		});
+	
+	});	
 	
 	</script>
 	<style>
@@ -118,17 +311,6 @@
 		</div>
 	</div>
 </nav>
-<div class="hidden">
-
-	<div>
-	Ingredients <select id="selectIngredient">
-	</select>
-	</div>
-	<div>
-	Cocktails<select id="selectCocktail">
-	</select>
-	</div>
-</div>
 <div id="list_cocktails">
 	<ul id="cocktails" class="list-group">
 		<button type="button" class="list-group-item">Manhattan</button>
@@ -137,6 +319,7 @@
 		<button type="button" class="list-group-item">Negroni</button>
 		<button type="button" class="list-group-item">Margarita</button>
 	</ul>
+	<button type="button" class="btn btn-default" id="navAddCocktail">Add Cocktail</button>
 </div>
 <div id="list_ingredients" class="hidden">
 	<ul id="ingredients" class="list-group">
@@ -146,17 +329,70 @@
 		<button type="button" class="list-group-item">Beefeater Gin</button>
 		<button type="button" class="list-group-item">Martini Red Vermouth</button>
 	</ul>
-</div>
-<div id="add_edit_cocktail" class="hidden">
-	Add ingredient, 
-	Name: <input type="text" id="txtIngredientName"/>
-	<input type="button" value="Add Ingredient" id="addIngredient"/>
+	<button type="button" class="btn btn-default" id="navAddIngredient">Add Ingredient</button>
 </div>
 <div id="add_edit_ingredient" class="hidden">
-	Add cocktail, 
-	Name: <input type="text" id="txtCocktailName"/>
-	Method: <input type="text" id="txtCocktailMethod"/>
-	<input type="button" value="Add Cocktail" id="addCocktail"/>
+	<div class="container">
+		<div class="row">
+			<div class="col-xs-6">
+				<div class="input-group">
+					<span class="input-group-addon">Name</span>
+					<input type="text" id="txtIngredientName" class="form-control" aria-label="...">
+				</div>
+			</div>
+			<div class="col-xs-6">
+				<div class="input-group">
+					<span class="input-group-addon">Unit</span>
+					<div class="input-group-btn">
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="selection" id="selectedUnit">ml</span> <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu select-dropdown">
+							<li><a href="#">ml</a></li>
+							<li><a href="#">g</a></li>
+							<li><a href="#">items</a></li>
+							<li><a href="#">oz</a></li>
+							<li><a href="#">dashes</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-6">
+				<div class="input-group">
+					<span class="input-group-addon">Amount in pantry</span>
+					<input type="text" id="txtIngredientPantryAmount" class="form-control" aria-label="...">
+				</div>
+			</div>
+		</div>
+		<button type="button" class="btn btn-default" id="addIngredient">Add Ingredient</button>
+		<button type="button" class="btn btn-default hidden" id="editIngredient">Edit Ingredient</button>
+	</div>
+</div>
+<div id="add_edit_cocktail" class="hidden">
+	<div class="container">
+		<div class="row">
+			<div class="col-xs-12">
+				<div class="input-group">
+					<span class="input-group-addon">Name</span>
+					<input type="text" id="txtCocktailName" class="form-control" aria-label="...">
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				<div class="input-group">
+					<span class="input-group-addon">Method</span>
+					<input type="text" id="txtCocktailMethod" class="form-control" aria-label="...">
+				</div>
+			</div>
+		</div>
+		<div id="cocktailIngredients" class="list-group">
+		</div>
+		<button type="button" class="btn btn-default" id="addCocktailIngredient">Add Ingredient</button>
+		<button type="button" class="btn btn-default" id="addCocktail">Add Cocktail</button>
+	</div>
 </div>
 </body>
 </html>

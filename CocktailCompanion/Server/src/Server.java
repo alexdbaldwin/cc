@@ -6,11 +6,48 @@ import com.google.gson.GsonBuilder;
 public class Server {
 
 	public static void main(String[] args) {
-		port(8080);
+		port(8081);
 		enableCORS("*", "*", "*");
 		
 		Database db = new Database();
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		
+		delete("/cocktails/:id", (req,res)->{
+
+			db.removeCocktail(Integer.parseInt(req.params("id")));
+			return "{}";
+		});
+		
+		delete("/ingredients/:id", (req,res)->{
+			db.removeIngredient(Integer.parseInt(req.params("id")));
+			return "{}";
+		});
+		
+		put("/ingredients", (req,res)->{
+			res.body("");
+			if (req.contentType().equals("application/json")) {
+				String json = req.body();
+				Ingredient ingredient = (Ingredient) gson.fromJson(json, Ingredient.class);
+				db.updateIngredient(ingredient);
+				
+				res.body(gson.toJson(ingredient)); //NOT SURE ABOUT THIS
+			}
+			
+			return res.body();
+		});
+		
+		put("/cocktails", (req,res)->{
+			res.body("");
+			if (req.contentType().equals("application/json")) {
+				String json = req.body();
+				Cocktail cocktail = (Cocktail) gson.fromJson(json, Cocktail.class);
+				db.updateCocktail(cocktail);
+				
+				res.body(gson.toJson(cocktail)); //NOT SURE ABOUT THIS
+			}
+			
+			return res.body();
+		});
 		
 		get("/cocktails", (req,res)-> {
 			return gson.toJson(db.getCocktails());
@@ -22,9 +59,7 @@ public class Server {
 		
 		post("/cocktails", (req,res)-> {
 			res.body("");
-			System.out.println("Cocktails!");
 			if (req.contentType().equals("application/json")) {
-				System.out.println("Made it!");
 				String json = req.body();
 				Cocktail cocktail = (Cocktail) gson.fromJson(json, Cocktail.class);
 				db.addCocktail(cocktail.name, cocktail.method);
@@ -42,8 +77,9 @@ public class Server {
 			
 			if (req.contentType().equals("application/json")) {
 				String json = req.body();
+				System.out.println(json);
 				Ingredient ingredient = (Ingredient) gson.fromJson(json, Ingredient.class);
-				db.addIngredient(ingredient.name);
+				db.addIngredient(ingredient.name, ingredient.unit, ingredient.pantryAmount);
 				
 				//SHOULD RETURN THE NEW ID
 				
