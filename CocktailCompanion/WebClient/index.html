@@ -131,9 +131,10 @@
 	
 	function updateCocktailsList(cocktails){
 	allCocktails = cocktails;
+	console.log(cocktails);
 		$('#cocktails').children().remove();
 		for(let i = 0; i < cocktails.length; i++){
-			$('#cocktails').append("<li class='list-group-item' id='" + cocktails[i].id + "'><a href='#'>" + cocktails[i].name + " " + cocktails[i].unit + "</a><span class='badge remove-cocktail-badge'><span class='glyphicon glyphicon-remove'></span></span></li>");
+			$('#cocktails').append("<li class='list-group-item' id='" + cocktails[i].id + "'><a href='#'>" + cocktails[i].name + "</a><span class='badge remove-cocktail-badge'><span class='glyphicon glyphicon-remove'></span></span></li>");
 			$('#cocktails li:last-child').find('.remove-cocktail-badge').click(function(){
 				deleteCocktail(cocktails[i]);
 			});

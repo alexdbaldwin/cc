@@ -20,7 +20,7 @@ public class Database {
 		Statement statement = connection.createStatement();
 		statement.executeUpdate("CREATE TABLE IF NOT EXISTS Cocktails(id INTEGER PRIMARY KEY, name TEXT, method TEXT); "
 				+ "CREATE TABLE IF NOT EXISTS Ingredients(id INTEGER PRIMARY KEY, name TEXT, unit TEXT, pantryamount REAL); "
-				+ "CREATE TABLE IF NOT EXISTS CocktailIngredients(cocktail INTEGER, ingredient INTEGER, quantity REAL, unit TEXT, FOREIGN KEY(cocktail) REFERENCES Cocktails(id), FOREIGN KEY(ingredient) REFERENCES Ingredients(id))");
+				+ "CREATE TABLE IF NOT EXISTS CocktailIngredients(cocktail INTEGER, ingredient INTEGER, quantity REAL, FOREIGN KEY(cocktail) REFERENCES Cocktails(id), FOREIGN KEY(ingredient) REFERENCES Ingredients(id))");
 		statement.close();
 	}
 	
@@ -33,12 +33,31 @@ public class Database {
 		statement.close();
 	}
 	
-	public void addCocktail(String name, String method) throws SQLException{
+	public void addCocktail(Cocktail cocktail) throws SQLException{
 		PreparedStatement statement = connection.prepareStatement("INSERT INTO Cocktails(name, method) VALUES (?,?);");
-		statement.setString(1, name);
-		statement.setString(2, method);
+		statement.setString(1, cocktail.name);
+		statement.setString(2, cocktail.method);
 		statement.executeUpdate();
-		statement.close();		
+		
+		Statement s = connection.createStatement();
+		ResultSet rs = s.executeQuery("SELECT last_insert_rowid() AS last");
+		cocktail.id = rs.getInt("last");
+		System.out.println(cocktail.id);
+		
+		//file_entry = query_db('SELECT last_insert_rowid()')
+		statement.close();
+		for(int i = 0; i < cocktail.ingredients.size(); i++){
+			addCocktailIngredient(cocktail, cocktail.ingredients.get(i));
+		}
+	}
+	
+	private void addCocktailIngredient(Cocktail cocktail, Ingredient ingredient) throws SQLException{
+		PreparedStatement statement = connection.prepareStatement("INSERT INTO CocktailIngredients(cocktail, ingredient, quantity) VALUES (?,?,?);");
+		statement.setInt(1, cocktail.id);
+		statement.setInt(2, ingredient.id);
+		statement.setDouble(3, ingredient.amount);
+		statement.executeUpdate();
+		statement.close();
 	}
 	
 	public void updateCocktail(Cocktail cocktail) throws SQLException{
@@ -48,6 +67,9 @@ public class Database {
 		statement.setInt(3, cocktail.id);
 		statement.executeUpdate();
 		statement.close();
+		
+		//TODO: Remove existing ingredients, add in the new ones....
+		
 	}
 	
 	public void updateIngredient(Ingredient ingredient) throws SQLException{
@@ -120,7 +142,21 @@ public class Database {
 			cocktail.id = rs.getInt("id");
 			cocktail.name = rs.getString("name");
 			cocktail.method = rs.getString("method");
+			
+			Statement ingredientS =  connection.createStatement();
+			ResultSet iRS = ingredientS.executeQuery("SELECT Ingredients.id AS iid, CocktailIngredients.quantity AS ciamount, Ingredients.name AS iname, Ingredients.unit AS iunit FROM ((Cocktails INNER JOIN CocktailIngredients ON Cocktails.id = CocktailIngredients.cocktail) INNER JOIN Ingredients ON CocktailIngredients.ingredient = Ingredients.id)");
+			while(iRS.next()){
+				Ingredient ingredient = new Ingredient();
+				ingredient.id = iRS.getInt("iid");
+				ingredient.amount = iRS.getDouble("ciamount");
+				ingredient.name = iRS.getString("iname");
+				ingredient.unit = iRS.getString("iunit");
+				cocktail.ingredients.add(ingredient);
+			}
+			ingredientS.close();
+			
 			cocktails.add(cocktail);
+			
 		}
 		
 		statement.close();

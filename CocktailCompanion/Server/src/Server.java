@@ -1,5 +1,7 @@
 import static spark.Spark.*;
 
+import java.sql.SQLException;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -50,7 +52,12 @@ public class Server {
 		});
 		
 		get("/cocktails", (req,res)-> {
+			try{
 			return gson.toJson(db.getCocktails());
+			} catch (SQLException e){
+				e.printStackTrace();
+			}
+			return null;
 		});
 		
 		get("/ingredients", (req,res)-> {
@@ -62,7 +69,11 @@ public class Server {
 			if (req.contentType().equals("application/json")) {
 				String json = req.body();
 				Cocktail cocktail = (Cocktail) gson.fromJson(json, Cocktail.class);
-				db.addCocktail(cocktail.name, cocktail.method);
+				try{
+					db.addCocktail(cocktail);
+				} catch (SQLException e){
+					e.printStackTrace();
+				}
 				
 				//SHOULD RETURN THE NEW ID
 				
